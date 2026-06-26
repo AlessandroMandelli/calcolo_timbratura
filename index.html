@@ -240,6 +240,34 @@
       opacity: 0.86;
     }
 
+
+    .reset-card {
+      padding: 16px;
+    }
+
+    .reset-button {
+      width: 100%;
+      border: 0;
+      border-radius: 18px;
+      padding: 16px 18px;
+      background: var(--polimi-blue);
+      color: white;
+      font-family: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 0 12px 28px rgba(16, 44, 83, 0.20);
+      transition: transform 140ms ease, opacity 140ms ease, box-shadow 140ms ease;
+    }
+
+    .reset-button:active {
+      transform: scale(0.985);
+      opacity: 0.88;
+      box-shadow: 0 8px 20px rgba(16, 44, 83, 0.18);
+    }
+
     @media (max-width: 360px) {
       h1 { font-size: 32px; }
       .card { padding: 18px; border-radius: 24px; }
@@ -463,11 +491,11 @@
       <div class="section-title">pausa pranzo</div>
       <div class="row">
         <span class="field-label">Inizio</span>
-        <input id="uscitaPausa" type="time" value="12:30" min="12:00">
+        <input id="uscitaPausa" type="time" value="12:00" min="12:00">
       </div>
       <div class="row">
         <span class="field-label">Fine</span>
-        <input id="rientroPausa" type="time" value="13:00">
+        <input id="rientroPausa" type="time" value="12:30">
       </div>
       <div id="pausaCalcolata" class="secondary"></div>
       <div id="avvisoPausa"></div>
@@ -476,6 +504,10 @@
     <section class="card result">
       <div class="section-title">orario di uscita</div>
       <div id="oraUscita" class="time-result">16:12</div>
+    </section>
+
+    <section class="card reset-card">
+      <button id="resetButton" class="reset-button" type="button">Reset</button>
     </section>
   </main>
 
@@ -576,6 +608,28 @@
         mostraAvviso(avvisoPausa, "Sei rientrato oltre le 15:00", "red");
       }
     }
+
+    const valoriIniziali = {
+      oraEntrata: "08:30",
+      inizioFascia: "08:30",
+      fineFascia: "09:30",
+      uscitaPausa: "12:00",
+      rientroPausa: "12:30"
+    };
+
+    resetButton.addEventListener("click", () => {
+      Object.entries(valoriIniziali).forEach(([id, valore]) => {
+        document.getElementById(id).value = valore;
+      });
+
+      const fasciaCard = document.querySelector(".collapsible-card");
+      if (fasciaCard) {
+        fasciaCard.removeAttribute("open");
+      }
+
+      calcola();
+      animaRisultato();
+    });
 
     calcola();
   </script>
