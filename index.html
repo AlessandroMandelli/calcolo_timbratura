@@ -113,6 +113,8 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      min-height: 46px;
+      line-height: 1.25;
       gap: 16px;
     }
 
@@ -125,16 +127,22 @@
     }
 
     .collapsible-card summary::after {
-      content: "⌄";
-      color: var(--polimi-blue);
-      font-size: 20px;
-      font-weight: 500;
-      line-height: 1;
-      transition: transform 180ms ease;
+      content: "";
+      width: 9px;
+      height: 9px;
+      border-right: 2px solid var(--polimi-blue);
+      border-bottom: 2px solid var(--polimi-blue);
+      transform: rotate(45deg);
+      transform-origin: center;
+      flex: 0 0 9px;
+      display: block;
+      margin-top: -3px;
+      transition: transform 180ms ease, margin 180ms ease;
     }
 
     .collapsible-card[open] summary::after {
-      transform: rotate(180deg);
+      transform: rotate(225deg);
+      margin-top: 3px;
     }
 
     .collapsible-content {
@@ -273,6 +281,8 @@
     .status-toggle.regolare {
       background: rgba(36, 138, 61, 0.10);
       color: var(--green);
+      justify-content: center;
+      text-align: center;
     }
 
     .status-toggle.anomalie {
@@ -281,8 +291,27 @@
     }
 
     .status-chevron {
-      font-size: 14px;
+      width: 24px;
+      height: 24px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      font-size: 0;
+      line-height: 0;
       transition: transform 180ms ease;
+      flex: 0 0 24px;
+    }
+
+    .status-chevron::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-right: 2px solid currentColor;
+      border-bottom: 2px solid currentColor;
+      transform: rotate(45deg);
+      transform-origin: center;
+      margin-top: -4px;
     }
 
     .status-panel.open .status-chevron {
@@ -292,11 +321,16 @@
     .status-list {
       display: none;
       margin: 12px 0 0;
-      padding-left: 18px;
+      padding: 0;
+      list-style: none;
       color: var(--muted);
       font-size: 13px;
       font-weight: 400;
       line-height: 1.55;
+    }
+
+    .status-list li {
+      margin: 8px 0;
     }
 
     .status-panel.open .status-list {
@@ -569,11 +603,9 @@
       <div id="oraUscita" class="time-result">16:12</div>
 
       <div id="statusPanel" class="status-panel">
-        <button id="statusToggle" class="status-toggle regolare" type="button" aria-expanded="false">
-          <span id="statusText">Giornata regolare</span>
-          <span class="status-chevron">⌄</span>
-        </button>
-        <ul id="statusList" class="status-list"></ul>
+        <div class="status-toggle regolare">
+          <span>✓ Giornata regolare</span>
+        </div>
       </div>
     </section>
 
@@ -615,6 +647,25 @@
       contenitore.innerHTML += `<div class="warning ${classe}">${testo}</div>`;
     }
 
+    function formattaDurata(minutiTotali) {
+      const minuti = Math.max(0, Math.round(minutiTotali));
+
+      if (minuti > 60) {
+        const ore = Math.floor(minuti / 60);
+        const resto = minuti % 60;
+        const testoOre = ore === 1 ? "1 ora" : ore + " ore";
+
+        if (resto === 0) {
+          return testoOre;
+        }
+
+        const testoMinuti = resto === 1 ? "1 minuto" : resto + " minuti";
+        return testoOre + " e " + testoMinuti;
+      }
+
+      return minuti === 1 ? "1 minuto" : minuti + " minuti";
+    }
+
     function animaRisultato() {
       oraUscita.classList.remove("updated");
       void oraUscita.offsetWidth;
@@ -625,7 +676,13 @@
     function calcola() {
       const entrata = minutiDaOra(oraEntrata.value);
       const inizio = minutiDaOra(inizioFascia.value);
-      const fine = minutiDaOra(fineFascia.value);
+      let fine = minutiDaOra(fineFascia.value);
+
+      fineFascia.min = oraDaMinuti(inizio);
+      if (fine < inizio) {
+        fineFascia.value = oraDaMinuti(inizio);
+        fine = inizio;
+      }
 
       let inizioPausa = minutiDaOra(uscitaPausa.value);
       let finePausa = minutiDaOra(rientroPausa.value);
@@ -671,7 +728,7 @@
       const anomalie = [];
 
       if (entrataInRitardo) {
-        const testo = `Ritardo di ${minutiRitardo} ${minutiRitardo === 1 ? "minuto" : "minuti"}`;
+        const testo = "Ritardo di " + formattaDurata(minutiRitardo);
         anomalie.push(testo);
       }
 
@@ -680,7 +737,11 @@
         anomalie.push(testo);
       }
 
-      pausaCalcolata.textContent = "Pausa calcolata: " + durataPausa + " min";
+      if (durataRealePausa < MIN_PAUSA) {
+        pausaCalcolata.textContent = "Pausa calcolata: 30 minuti";
+      } else {
+        pausaCalcolata.textContent = "Durata pausa: " + formattaDurata(durataPausa);
+      }
 
       if (durataRealePausa < MIN_PAUSA) {
         const testo = "Pausa inferiore a 30 minuti. Viene conteggiata mezz'ora";
@@ -708,15 +769,15 @@
       if (anomalie.length === 0) {
         statusPanel.innerHTML = `
           <div class="status-toggle regolare">
-            <span>Giornata regolare</span>
+            <span>✓ Giornata regolare</span>
           </div>
         `;
         return;
       }
 
       const testoStato = anomalie.length === 1
-        ? "1 anomalia rilevata"
-        : anomalie.length + " anomalie rilevate";
+        ? "⚠ 1 anomalia rilevata"
+        : "⚠ " + anomalie.length + " anomalie rilevate";
 
       const lista = anomalie
         .map(testo => `<li>${testo}</li>`)
