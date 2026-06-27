@@ -784,11 +784,11 @@
 
     let finePausaSelezionata = false;
 
-    ["focus", "click", "touchstart", "input"].forEach(eventName => {
+    ["focus", "click", "input", "change"].forEach(eventName => {
       rientroPausa.addEventListener(eventName, () => {
         finePausaSelezionata = true;
         calcola();
-      }, { passive: true });
+      });
     });
 
     function minutiDaOra(ora) {
@@ -990,18 +990,38 @@
       toggle.setAttribute("aria-expanded", aperto ? "true" : "false");
     });
 
+    function apriSelettoreOrario(input) {
+      if (!input) return;
+
+      input.focus({ preventScroll: true });
+
+      if (typeof input.showPicker === 'function') {
+        try {
+          input.showPicker();
+          return;
+        } catch (errore) {
+          // Alcuni browser mobili, in particolare Safari iOS, non permettono showPicker().
+        }
+      }
+
+      // Fallback per iOS: il click deve partire da un gesto utente reale.
+      input.click();
+    }
+
     document.querySelectorAll('.row input[type="time"]').forEach(input => {
       const row = input.closest('.row');
       if (!row) return;
 
       row.addEventListener('click', event => {
         if (event.target === input) return;
-        input.focus();
-
-        if (typeof input.showPicker === 'function') {
-          input.showPicker();
-        }
+        apriSelettoreOrario(input);
       });
+
+      row.addEventListener('touchend', event => {
+        if (event.target === input) return;
+        event.preventDefault();
+        apriSelettoreOrario(input);
+      }, { passive: false });
     });
 
     resetButton.addEventListener("click", () => {
