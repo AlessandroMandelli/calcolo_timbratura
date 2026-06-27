@@ -217,6 +217,7 @@
     }
 
     .field-label {
+      cursor: default;
       font-size: 13px;
       font-weight: 400;
       color: var(--muted);
@@ -659,12 +660,12 @@
       </summary>
       <div class="collapsible-content">
         <div class="row">
-          <span class="field-label">Inizio</span>
-          <input id="inizioFascia" type="time" value="08:30">
+          <label class="field-label" for="inizioFascia">Inizio</label>
+          <input id="inizioFascia" type="time" value="08:30" aria-label="Inizio fascia oraria">
         </div>
         <div class="row">
-          <span class="field-label">Fine</span>
-          <input id="fineFascia" type="time" value="09:30">
+          <label class="field-label" for="fineFascia">Fine</label>
+          <input id="fineFascia" type="time" value="09:30" aria-label="Fine fascia oraria">
         </div>
       </div>
     </details>
@@ -672,8 +673,8 @@
     <section class="card">
       <div class="section-title">entrata</div>
       <div class="row">
-        <span class="field-label">Ingresso</span>
-        <input id="oraEntrata" type="time" value="08:30">
+        <label class="field-label" for="oraEntrata">Ingresso</label>
+        <input id="oraEntrata" type="time" value="08:30" aria-label="Orario di ingresso">
       </div>
       <div id="avvisoEntrata"></div>
     </section>
@@ -681,12 +682,12 @@
     <section class="card">
       <div class="section-title">pausa pranzo</div>
       <div class="row">
-        <span class="field-label">Inizio</span>
-        <input id="uscitaPausa" type="time" value="12:00" min="12:00">
+        <label class="field-label" for="uscitaPausa">Inizio</label>
+        <input id="uscitaPausa" type="time" value="12:00" min="12:00" aria-label="Inizio pausa pranzo">
       </div>
       <div class="row">
-        <span class="field-label">Fine</span>
-        <input id="rientroPausa" type="time" value="12:30">
+        <label class="field-label" for="rientroPausa">Fine</label>
+        <input id="rientroPausa" type="time" value="12:30" aria-label="Fine pausa pranzo">
       </div>
       <div id="pausaCalcolata" class="secondary"></div>
       <div id="avvisoPausa"></div>
@@ -698,8 +699,8 @@
       </summary>
       <div class="collapsible-content">
         <div class="row">
-          <span class="field-label">Uscita</span>
-          <input id="uscitaEffettiva" type="time" value="16:12">
+          <label class="field-label" for="uscitaEffettiva">Uscita</label>
+          <input id="uscitaEffettiva" type="time" value="16:12" aria-label="Uscita effettiva">
         </div>
         <div id="presenzaEffettiva" class="secondary"></div>
       </div>
@@ -707,7 +708,7 @@
 
     <section class="card result">
       <div class="section-title">orario di uscita</div>
-      <div id="oraUscita" class="time-result">16:12</div>
+      <div id="oraUscita" class="time-result" aria-live="polite">16:12</div>
 
       <div id="statusPanel" class="status-panel">
         <div class="status-toggle regolare">
@@ -727,106 +728,72 @@
   </main>
 
   <script>
-    const MINUTI_LAVORO = 7 * 60 + 12;
-    const MIN_PAUSA = 30;
-    const MAX_PAUSA = 120;
-    const ORA_MINIMA_PAUSA = 12 * 60;
-    const ORA_MASSIMA_RIENTRO = 15 * 60;
+    "use strict";
 
-    const ids = [
-      "oraEntrata",
-      "uscitaPausa",
-      "rientroPausa"
+    const CONFIG = Object.freeze({
+      minutiLavoro: 7 * 60 + 12,
+      pausaMinima: 30,
+      pausaMassima: 120,
+      oraMinimaPausa: 12 * 60,
+      oraMassimaRientro: 15 * 60,
+      storageKey: "timbratura-politecnico-v2"
+    });
+
+    const VALORI_INIZIALI = Object.freeze({
+      oraEntrata: "08:30",
+      inizioFascia: "08:30",
+      fineFascia: "09:30",
+      uscitaPausa: "12:00",
+      rientroPausa: "12:30",
+      uscitaEffettiva: "16:12"
+    });
+
+    const $ = id => document.getElementById(id);
+
+    const elementi = {
+      inizioFascia: $("inizioFascia"),
+      fineFascia: $("fineFascia"),
+      oraEntrata: $("oraEntrata"),
+      uscitaPausa: $("uscitaPausa"),
+      rientroPausa: $("rientroPausa"),
+      uscitaEffettiva: $("uscitaEffettiva"),
+      avvisoEntrata: $("avvisoEntrata"),
+      pausaCalcolata: $("pausaCalcolata"),
+      avvisoPausa: $("avvisoPausa"),
+      presenzaEffettiva: $("presenzaEffettiva"),
+      oraUscita: $("oraUscita"),
+      statusPanel: $("statusPanel"),
+      resetButton: $("resetButton"),
+      uscitaEffettivaCard: $("uscitaEffettivaCard")
+    };
+
+    const campiOrario = [
+      elementi.inizioFascia,
+      elementi.fineFascia,
+      elementi.oraEntrata,
+      elementi.uscitaPausa,
+      elementi.rientroPausa,
+      elementi.uscitaEffettiva
     ];
 
-    ids.forEach(id => document.getElementById(id).addEventListener("input", calcola));
-
-    fineFascia.addEventListener("input", () => {
-      const nuovoInizioFascia = minutiDaOra(fineFascia.value) - 60;
-
-      if (minutiDaOra(oraEntrata.value) === ultimoInizioFascia || minutiDaOra(oraEntrata.value) === minutiDaOra(inizioFascia.value)) {
-        oraEntrata.value = oraDaMinuti(nuovoInizioFascia);
-      }
-
-      inizioFascia.value = oraDaMinuti(nuovoInizioFascia);
-      ultimoInizioFascia = nuovoInizioFascia;
-
-      allineaUscitaEffettivaAlMinimo();
-    });
-
-    function allineaUscitaEffettivaAlMinimo() {
-      calcola();
-      uscitaEffettiva.value = oraUscita.textContent;
-      calcola();
-    }
-
-    uscitaEffettiva.addEventListener("input", calcola);
-
-    let ultimoInizioFascia = minutiDaOra(inizioFascia.value);
-
-    inizioFascia.addEventListener("input", () => {
-      const inizio = minutiDaOra(inizioFascia.value);
-
-      if (minutiDaOra(oraEntrata.value) === ultimoInizioFascia) {
-        oraEntrata.value = oraDaMinuti(inizio);
-      }
-
-      fineFascia.value = oraDaMinuti(inizio + 60);
-      ultimoInizioFascia = inizio;
-
-      allineaUscitaEffettivaAlMinimo();
-    });
-
-    oraEntrata.addEventListener("input", () => {
-      allineaUscitaEffettivaAlMinimo();
-    });
-
-    let ultimoInizioPausa = minutiDaOra(uscitaPausa.value);
-
-    uscitaPausa.addEventListener("input", () => {
-      const nuovoInizioPausa = minutiDaOra(uscitaPausa.value);
-      const finePausaCorrente = minutiDaOra(rientroPausa.value);
-      const finePausaAutomaticaPrecedente = ultimoInizioPausa + MIN_PAUSA;
-
-      // Se la fine pausa era ancora quella automatica o diventa incoerente,
-      // propongo nuovamente una pausa minima di 30 minuti.
-      // Dopo questa proposta l'utente puo comunque modificarla liberamente.
-      if (finePausaCorrente <= nuovoInizioPausa || finePausaCorrente === finePausaAutomaticaPrecedente) {
-        rientroPausa.value = oraDaMinuti(nuovoInizioPausa + MIN_PAUSA);
-      }
-
-      ultimoInizioPausa = nuovoInizioPausa;
-      allineaUscitaEffettivaAlMinimo();
-    });
-
-    rientroPausa.addEventListener("input", () => {
-      finePausaSelezionata = true;
-      allineaUscitaEffettivaAlMinimo();
-    });
-
-    let finePausaSelezionata = false;
-
-    ["focus", "click", "input", "change"].forEach(eventName => {
-      rientroPausa.addEventListener(eventName, () => {
-        finePausaSelezionata = true;
-        calcola();
-      });
-    });
+    const stato = {
+      ultimoInizioFascia: minutiDaOra(VALORI_INIZIALI.inizioFascia),
+      ultimoInizioPausa: minutiDaOra(VALORI_INIZIALI.uscitaPausa),
+      finePausaSelezionata: false,
+      storageDisponibile: storageDisponibile()
+    };
 
     function minutiDaOra(ora) {
+      if (!/^\d{2}:\d{2}$/.test(ora || "")) return 0;
       const [h, m] = ora.split(":").map(Number);
       return h * 60 + m;
     }
 
     function oraDaMinuti(minuti) {
-      minuti = ((minuti % 1440) + 1440) % 1440;
-      const h = Math.floor(minuti / 60);
-      const m = minuti % 60;
+      const minutiNormalizzati = ((minuti % 1440) + 1440) % 1440;
+      const h = Math.floor(minutiNormalizzati / 60);
+      const m = minutiNormalizzati % 60;
       return String(h).padStart(2, "0") + ":" + String(m).padStart(2, "0");
-    }
-
-    function mostraAvviso(contenitore, testo, classe) {
-      contenitore.innerHTML += `<div class="warning ${classe}">${testo}</div>`;
     }
 
     function formattaDurata(minutiTotali) {
@@ -836,11 +803,7 @@
         const ore = Math.floor(minuti / 60);
         const resto = minuti % 60;
         const testoOre = ore === 1 ? "1 ora" : ore + " ore";
-
-        if (resto === 0) {
-          return testoOre;
-        }
-
+        if (resto === 0) return testoOre;
         const testoMinuti = resto === 1 ? "1 minuto" : resto + " minuti";
         return testoOre + " e " + testoMinuti;
       }
@@ -848,131 +811,141 @@
       return minuti === 1 ? "1 minuto" : minuti + " minuti";
     }
 
-    function animaRisultato() {
-      oraUscita.classList.remove("updated");
-      void oraUscita.offsetWidth;
-      oraUscita.classList.add("updated");
-      window.setTimeout(() => oraUscita.classList.remove("updated"), 180);
+    function storageDisponibile() {
+      try {
+        const chiaveTest = "__test_timbratura__";
+        localStorage.setItem(chiaveTest, "1");
+        localStorage.removeItem(chiaveTest);
+        return true;
+      } catch (_) {
+        return false;
+      }
     }
 
-    function calcola() {
-      const entrata = minutiDaOra(oraEntrata.value);
-      const inizio = minutiDaOra(inizioFascia.value);
-      let fine = minutiDaOra(fineFascia.value);
+    function caricaDatiSalvati() {
+      if (!stato.storageDisponibile) return;
 
-      fineFascia.min = oraDaMinuti(inizio);
-      if (fine < inizio) {
-        fineFascia.value = oraDaMinuti(inizio);
-        fine = inizio;
+      try {
+        const salvati = JSON.parse(localStorage.getItem(CONFIG.storageKey) || "{}");
+        Object.entries(VALORI_INIZIALI).forEach(([id, valoreDefault]) => {
+          const valore = typeof salvati[id] === "string" && /^\d{2}:\d{2}$/.test(salvati[id])
+            ? salvati[id]
+            : valoreDefault;
+          const elemento = $(id);
+          if (elemento) elemento.value = valore;
+        });
+        stato.finePausaSelezionata = Boolean(salvati.finePausaSelezionata);
+      } catch (_) {
+        // In caso di dati corrotti, riparto dai valori iniziali.
       }
+    }
 
-      let inizioPausa = minutiDaOra(uscitaPausa.value);
-      let finePausa = minutiDaOra(rientroPausa.value);
+    function salvaDati() {
+      if (!stato.storageDisponibile) return;
 
-      const inizioMinimoConsentitoPausa = Math.max(ORA_MINIMA_PAUSA, entrata);
-      uscitaPausa.min = oraDaMinuti(inizioMinimoConsentitoPausa);
+      const dati = Object.keys(VALORI_INIZIALI).reduce((acc, id) => {
+        acc[id] = $(id).value;
+        return acc;
+      }, { finePausaSelezionata: stato.finePausaSelezionata });
 
-      if (inizioPausa < inizioMinimoConsentitoPausa) {
-        uscitaPausa.value = oraDaMinuti(inizioMinimoConsentitoPausa);
-        inizioPausa = inizioMinimoConsentitoPausa;
-      }
+      localStorage.setItem(CONFIG.storageKey, JSON.stringify(dati));
+    }
 
-      // Non imposto min su rientroPausa: su Safari iOS il vincolo dinamico
-      // puo bloccare il selettore orario. Il controllo resta solo logico.
-      rientroPausa.removeAttribute("min");
+    function calcolaOrario(input) {
+      let entrata = input.entrata;
+      let inizioFascia = input.inizioFascia;
+      let fineFascia = Math.max(input.fineFascia, inizioFascia);
+      let inizioPausa = Math.max(input.inizioPausa, CONFIG.oraMinimaPausa, entrata);
+      let finePausa = Math.max(input.finePausa, inizioPausa);
 
-      if (finePausa < inizioPausa) {
-        rientroPausa.value = oraDaMinuti(inizioPausa);
-        finePausa = inizioPausa;
-      }
-
-      const entrataEffettiva = entrata < inizio ? inizio : entrata;
-      const entrataInRitardo = entrata > fine;
-      const minutiRitardo = entrata - fine;
-
+      const entrataEffettiva = Math.max(entrata, inizioFascia);
       const durataRealePausa = finePausa - inizioPausa;
-      const durataPausa = durataRealePausa < MIN_PAUSA ? MIN_PAUSA : durataRealePausa;
-
-      const pausaTroppoLunga = durataPausa > MAX_PAUSA;
-      const rientroInRitardo = finePausa > ORA_MASSIMA_RIENTRO;
-
-      const uscita = entrataEffettiva + MINUTI_LAVORO + durataPausa;
-      const nuovoOrario = oraDaMinuti(uscita);
-
-      if (oraUscita.textContent !== nuovoOrario) {
-        oraUscita.textContent = nuovoOrario;
-        animaRisultato();
-      } else {
-        oraUscita.textContent = nuovoOrario;
-      }
-
-      let uscitaEff = minutiDaOra(uscitaEffettiva.value);
-
-      const minutiLavorati = Math.max(0, uscitaEff - entrataEffettiva - durataPausa);
-      const differenzaPresenza = minutiLavorati - MINUTI_LAVORO;
-
-      if (differenzaPresenza >= 1) {
-        presenzaEffettiva.textContent = "Maggior presenza: " + formattaDurata(differenzaPresenza);
-      } else {
-        presenzaEffettiva.textContent = "";
-      }
-
-      avvisoEntrata.innerHTML = "";
-      avvisoPausa.innerHTML = "";
+      const durataPausa = Math.max(durataRealePausa, CONFIG.pausaMinima);
+      const minutiLavorati = Math.max(0, input.uscitaEffettiva - entrataEffettiva - durataPausa);
+      const differenzaPresenza = minutiLavorati - CONFIG.minutiLavoro;
 
       const anomalie = [];
 
-      if (entrataInRitardo) {
-        const testo = "Ritardo di " + formattaDurata(minutiRitardo);
-        anomalie.push(testo);
+      if (entrata > fineFascia) {
+        anomalie.push("Ritardo di " + formattaDurata(entrata - fineFascia));
       }
 
-      if (entrata < inizio) {
-        const testo = "Ingresso anticipato. Calcolo avviato dalle " + oraDaMinuti(inizio);
-        anomalie.push(testo);
+      if (entrata < inizioFascia) {
+        anomalie.push("Ingresso anticipato. Calcolo avviato dalle " + oraDaMinuti(inizioFascia));
       }
 
-      if (finePausaSelezionata) {
-        if (durataRealePausa < MIN_PAUSA) {
-          pausaCalcolata.textContent = "Pausa calcolata: 30 minuti";
-        } else {
-          pausaCalcolata.textContent = "Durata pausa: " + formattaDurata(durataPausa);
-        }
-      } else {
-        pausaCalcolata.textContent = "";
+      if (durataRealePausa < CONFIG.pausaMinima) {
+        anomalie.push("Pausa inferiore a 30 minuti. Viene conteggiata mezz'ora");
       }
 
-      if (durataRealePausa < MIN_PAUSA) {
-        const testo = "Pausa inferiore a 30 minuti. Viene conteggiata mezz'ora";
-        anomalie.push(testo);
+      if (durataPausa > CONFIG.pausaMassima) {
+        anomalie.push("Pausa superiore a 2 ore");
       }
 
-      if (pausaTroppoLunga) {
-        const testo = "Pausa superiore a 2 ore";
-        anomalie.push(testo);
-      }
-
-      if (rientroInRitardo) {
-        const testo = "Rientro pausa oltre le 15:00";
-        anomalie.push(testo);
+      if (finePausa > CONFIG.oraMassimaRientro) {
+        anomalie.push("Rientro pausa oltre le 15:00");
       }
 
       if (differenzaPresenza < 0) {
-        const testo = "Giornata non completa. Ore lavorate: " + formattaDurata(minutiLavorati);
-        anomalie.push(testo);
+        anomalie.push("Giornata non completa. Ore lavorate: " + formattaDurata(minutiLavorati));
       }
 
-      aggiornaStatoAnomalie(anomalie);
+      return {
+        fineFascia,
+        inizioPausa,
+        finePausa,
+        entrataEffettiva,
+        durataRealePausa,
+        durataPausa,
+        uscitaCalcolata: entrataEffettiva + CONFIG.minutiLavoro + durataPausa,
+        minutiLavorati,
+        differenzaPresenza,
+        anomalie
+      };
     }
 
+    function leggiInput() {
+      return {
+        entrata: minutiDaOra(elementi.oraEntrata.value),
+        inizioFascia: minutiDaOra(elementi.inizioFascia.value),
+        fineFascia: minutiDaOra(elementi.fineFascia.value),
+        inizioPausa: minutiDaOra(elementi.uscitaPausa.value),
+        finePausa: minutiDaOra(elementi.rientroPausa.value),
+        uscitaEffettiva: minutiDaOra(elementi.uscitaEffettiva.value)
+      };
+    }
+
+    function normalizzaCampi(input, risultato) {
+      elementi.fineFascia.min = oraDaMinuti(input.inizioFascia);
+      if (input.fineFascia < input.inizioFascia) {
+        elementi.fineFascia.value = oraDaMinuti(risultato.fineFascia);
+      }
+
+      elementi.uscitaPausa.min = oraDaMinuti(Math.max(CONFIG.oraMinimaPausa, input.entrata));
+      if (input.inizioPausa !== risultato.inizioPausa) {
+        elementi.uscitaPausa.value = oraDaMinuti(risultato.inizioPausa);
+      }
+
+      // Su Safari iOS un min dinamico sull'orario di rientro puo bloccare il picker.
+      elementi.rientroPausa.removeAttribute("min");
+      if (input.finePausa !== risultato.finePausa) {
+        elementi.rientroPausa.value = oraDaMinuti(risultato.finePausa);
+      }
+    }
+
+    function animaRisultato() {
+      elementi.oraUscita.classList.remove("updated");
+      void elementi.oraUscita.offsetWidth;
+      elementi.oraUscita.classList.add("updated");
+      window.setTimeout(() => elementi.oraUscita.classList.remove("updated"), 180);
+    }
 
     function aggiornaStatoAnomalie(anomalie) {
-      const statusPanel = document.getElementById("statusPanel");
-      statusPanel.classList.remove("open");
+      elementi.statusPanel.classList.remove("open");
 
       if (anomalie.length === 0) {
-        statusPanel.innerHTML = `
-          <div class="status-toggle regolare">
+        elementi.statusPanel.innerHTML = `
+          <div class="status-toggle regolare" role="status">
             <span>✓ Giornata regolare</span>
           </div>
         `;
@@ -983,88 +956,145 @@
         ? "⚠ 1 anomalia rilevata"
         : "⚠ " + anomalie.length + " anomalie rilevate";
 
-      const lista = anomalie
-        .map(testo => `<li>${testo}</li>`)
-        .join("");
+      const lista = anomalie.map(testo => `<li>${testo}</li>`).join("");
 
-      statusPanel.innerHTML = `
-        <button id="statusToggle" class="status-toggle anomalie" type="button" aria-expanded="false">
+      elementi.statusPanel.innerHTML = `
+        <button id="statusToggle" class="status-toggle anomalie" type="button" aria-expanded="false" aria-controls="statusList">
           <span>${testoStato}</span>
-          <span class="status-chevron">⌄</span>
+          <span class="status-chevron" aria-hidden="true">⌄</span>
         </button>
         <ul id="statusList" class="status-list">${lista}</ul>
       `;
     }
 
-    const valoriIniziali = {
-      oraEntrata: "08:30",
-      inizioFascia: "08:30",
-      fineFascia: "09:30",
-      uscitaPausa: "12:00",
-      rientroPausa: "12:30",
-      uscitaEffettiva: "16:12"
-    };
-
-    document.getElementById("statusPanel").addEventListener("click", event => {
-      const toggle = event.target.closest("#statusToggle");
-      if (!toggle) return;
-
-      const panel = document.getElementById("statusPanel");
-      const aperto = panel.classList.toggle("open");
-      toggle.setAttribute("aria-expanded", aperto ? "true" : "false");
-    });
-
-    function apriSelettoreOrario(input) {
-      if (!input) return;
-
-      input.focus({ preventScroll: true });
-
-      if (typeof input.showPicker === 'function') {
-        try {
-          input.showPicker();
-          return;
-        } catch (errore) {
-          // Alcuni browser mobili, in particolare Safari iOS, non permettono showPicker().
-        }
+    function renderizza(risultato) {
+      const nuovoOrario = oraDaMinuti(risultato.uscitaCalcolata);
+      if (elementi.oraUscita.textContent !== nuovoOrario) {
+        elementi.oraUscita.textContent = nuovoOrario;
+        animaRisultato();
       }
 
-      // Fallback per iOS: il click deve partire da un gesto utente reale.
-      input.click();
+      elementi.presenzaEffettiva.textContent = risultato.differenzaPresenza >= 1
+        ? "Maggior presenza: " + formattaDurata(risultato.differenzaPresenza)
+        : "";
+
+      elementi.avvisoEntrata.innerHTML = "";
+      elementi.avvisoPausa.innerHTML = "";
+
+      if (stato.finePausaSelezionata) {
+        elementi.pausaCalcolata.textContent = risultato.durataRealePausa < CONFIG.pausaMinima
+          ? "Pausa calcolata: 30 minuti"
+          : "Durata pausa: " + formattaDurata(risultato.durataPausa);
+      } else {
+        elementi.pausaCalcolata.textContent = "";
+      }
+
+      aggiornaStatoAnomalie(risultato.anomalie);
     }
 
-    document.querySelectorAll('input[type="time"]').forEach(input => {
-      input.addEventListener('click', () => {
-        apriSelettoreOrario(input);
-      });
-    });
+    function calcola() {
+      const input = leggiInput();
+      const risultato = calcolaOrario(input);
+      normalizzaCampi(input, risultato);
+      renderizza(risultato);
+      salvaDati();
+      return risultato;
+    }
 
-    resetButton.addEventListener("click", () => {
-      Object.entries(valoriIniziali).forEach(([id, valore]) => {
-        document.getElementById(id).value = valore;
-      });
+    function allineaUscitaEffettivaAlMinimo() {
+      const risultato = calcola();
+      elementi.uscitaEffettiva.value = oraDaMinuti(risultato.uscitaCalcolata);
+      calcola();
+    }
 
-      const fasciaCard = document.querySelector(".collapsible-card");
-      if (fasciaCard) {
-        fasciaCard.removeAttribute("open");
+    function aggiornaFasciaDaInizio() {
+      const nuovoInizio = minutiDaOra(elementi.inizioFascia.value);
+      if (minutiDaOra(elementi.oraEntrata.value) === stato.ultimoInizioFascia) {
+        elementi.oraEntrata.value = oraDaMinuti(nuovoInizio);
+      }
+      elementi.fineFascia.value = oraDaMinuti(nuovoInizio + 60);
+      stato.ultimoInizioFascia = nuovoInizio;
+      allineaUscitaEffettivaAlMinimo();
+    }
+
+    function aggiornaFasciaDaFine() {
+      const nuovoInizio = minutiDaOra(elementi.fineFascia.value) - 60;
+      const entrata = minutiDaOra(elementi.oraEntrata.value);
+      const inizioAttuale = minutiDaOra(elementi.inizioFascia.value);
+
+      if (entrata === stato.ultimoInizioFascia || entrata === inizioAttuale) {
+        elementi.oraEntrata.value = oraDaMinuti(nuovoInizio);
       }
 
-      finePausaSelezionata = false;
-      ultimoInizioPausa = minutiDaOra(uscitaPausa.value);
+      elementi.inizioFascia.value = oraDaMinuti(nuovoInizio);
+      stato.ultimoInizioFascia = nuovoInizio;
+      allineaUscitaEffettivaAlMinimo();
+    }
 
-      const uscitaEffettivaCard = document.getElementById("uscitaEffettivaCard");
-      if (uscitaEffettivaCard) {
-        uscitaEffettivaCard.removeAttribute("open");
+    function aggiornaPausaDaInizio() {
+      const nuovoInizioPausa = minutiDaOra(elementi.uscitaPausa.value);
+      const finePausaCorrente = minutiDaOra(elementi.rientroPausa.value);
+      const finePausaAutomaticaPrecedente = stato.ultimoInizioPausa + CONFIG.pausaMinima;
+
+      if (finePausaCorrente <= nuovoInizioPausa || finePausaCorrente === finePausaAutomaticaPrecedente) {
+        elementi.rientroPausa.value = oraDaMinuti(nuovoInizioPausa + CONFIG.pausaMinima);
+      }
+
+      stato.ultimoInizioPausa = nuovoInizioPausa;
+      allineaUscitaEffettivaAlMinimo();
+    }
+
+    function resetta() {
+      Object.entries(VALORI_INIZIALI).forEach(([id, valore]) => {
+        const elemento = $(id);
+        if (elemento) elemento.value = valore;
+      });
+
+      document.querySelectorAll(".collapsible-card").forEach(card => card.removeAttribute("open"));
+
+      stato.finePausaSelezionata = false;
+      stato.ultimoInizioFascia = minutiDaOra(VALORI_INIZIALI.inizioFascia);
+      stato.ultimoInizioPausa = minutiDaOra(VALORI_INIZIALI.uscitaPausa);
+
+      if (stato.storageDisponibile) {
+        localStorage.removeItem(CONFIG.storageKey);
       }
 
       calcola();
       animaRisultato();
-    });
-
-    const uscitaEffettivaCard = document.getElementById("uscitaEffettivaCard");
-    if (uscitaEffettivaCard) {
-      uscitaEffettivaCard.removeAttribute("open");
     }
 
+    function collegaEventi() {
+      elementi.inizioFascia.addEventListener("input", aggiornaFasciaDaInizio);
+      elementi.fineFascia.addEventListener("input", aggiornaFasciaDaFine);
+      elementi.oraEntrata.addEventListener("input", allineaUscitaEffettivaAlMinimo);
+      elementi.uscitaPausa.addEventListener("input", aggiornaPausaDaInizio);
+      elementi.rientroPausa.addEventListener("input", () => {
+        stato.finePausaSelezionata = true;
+        allineaUscitaEffettivaAlMinimo();
+      });
+      elementi.uscitaEffettiva.addEventListener("input", calcola);
+      elementi.resetButton.addEventListener("click", resetta);
+
+      elementi.statusPanel.addEventListener("click", event => {
+        const toggle = event.target.closest("#statusToggle");
+        if (!toggle) return;
+        const aperto = elementi.statusPanel.classList.toggle("open");
+        toggle.setAttribute("aria-expanded", aperto ? "true" : "false");
+      });
+
+      // Mantengo il comportamento nativo del browser sul picker orario.
+      // Evito input.click() ricorsivi, poco affidabili su iOS/Safari.
+      campiOrario.forEach(input => {
+        input.addEventListener("change", calcola);
+      });
+    }
+
+    caricaDatiSalvati();
+    stato.ultimoInizioFascia = minutiDaOra(elementi.inizioFascia.value);
+    stato.ultimoInizioPausa = minutiDaOra(elementi.uscitaPausa.value);
+    elementi.uscitaEffettivaCard.removeAttribute("open");
+    collegaEventi();
     calcola();
   </script>
 </body>
