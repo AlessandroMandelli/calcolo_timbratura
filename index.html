@@ -739,12 +739,24 @@
 
     const ids = [
       "oraEntrata",
-      "fineFascia",
       "uscitaPausa",
       "rientroPausa"
     ];
 
     ids.forEach(id => document.getElementById(id).addEventListener("input", calcola));
+
+    fineFascia.addEventListener("input", () => {
+      const nuovoInizioFascia = minutiDaOra(fineFascia.value) - 60;
+
+      if (minutiDaOra(oraEntrata.value) === ultimoInizioFascia || minutiDaOra(oraEntrata.value) === minutiDaOra(inizioFascia.value)) {
+        oraEntrata.value = oraDaMinuti(nuovoInizioFascia);
+      }
+
+      inizioFascia.value = oraDaMinuti(nuovoInizioFascia);
+      ultimoInizioFascia = nuovoInizioFascia;
+
+      allineaUscitaEffettivaAlMinimo();
+    });
 
     function allineaUscitaEffettivaAlMinimo() {
       calcola();
