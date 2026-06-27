@@ -240,10 +240,6 @@
       cursor: pointer;
     }
 
-    .row:has(input[type="time"]) {
-      cursor: pointer;
-    }
-
 
     @media (prefers-color-scheme: dark) {
       input[type="time"] {
@@ -1036,20 +1032,10 @@
       input.click();
     }
 
-    document.querySelectorAll('.row input[type="time"]').forEach(input => {
-      const row = input.closest('.row');
-      if (!row) return;
-
-      row.addEventListener('click', event => {
-        if (event.target === input) return;
+    document.querySelectorAll('input[type="time"]').forEach(input => {
+      input.addEventListener('click', () => {
         apriSelettoreOrario(input);
       });
-
-      row.addEventListener('touchend', event => {
-        if (event.target === input) return;
-        event.preventDefault();
-        apriSelettoreOrario(input);
-      }, { passive: false });
     });
 
     resetButton.addEventListener("click", () => {
