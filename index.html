@@ -773,7 +773,21 @@
       allineaUscitaEffettivaAlMinimo();
     });
 
+    let ultimoInizioPausa = minutiDaOra(uscitaPausa.value);
+
     uscitaPausa.addEventListener("input", () => {
+      const nuovoInizioPausa = minutiDaOra(uscitaPausa.value);
+      const finePausaCorrente = minutiDaOra(rientroPausa.value);
+      const finePausaAutomaticaPrecedente = ultimoInizioPausa + MIN_PAUSA;
+
+      // Se la fine pausa era ancora quella automatica o diventa incoerente,
+      // propongo nuovamente una pausa minima di 30 minuti.
+      // Dopo questa proposta l'utente puo comunque modificarla liberamente.
+      if (finePausaCorrente <= nuovoInizioPausa || finePausaCorrente === finePausaAutomaticaPrecedente) {
+        rientroPausa.value = oraDaMinuti(nuovoInizioPausa + MIN_PAUSA);
+      }
+
+      ultimoInizioPausa = nuovoInizioPausa;
       allineaUscitaEffettivaAlMinimo();
     });
 
@@ -855,7 +869,9 @@
         inizioPausa = inizioMinimoConsentitoPausa;
       }
 
-      rientroPausa.min = oraDaMinuti(inizioPausa);
+      // Non imposto min su rientroPausa: su Safari iOS il vincolo dinamico
+      // puo bloccare il selettore orario. Il controllo resta solo logico.
+      rientroPausa.removeAttribute("min");
 
       if (finePausa < inizioPausa) {
         rientroPausa.value = oraDaMinuti(inizioPausa);
@@ -1035,6 +1051,7 @@
       }
 
       finePausaSelezionata = false;
+      ultimoInizioPausa = minutiDaOra(uscitaPausa.value);
 
       const uscitaEffettivaCard = document.getElementById("uscitaEffettivaCard");
       if (uscitaEffettivaCard) {
