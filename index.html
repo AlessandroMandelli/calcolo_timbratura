@@ -4,367 +4,277 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Calcolo Orario</title>
-
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-
   <style>
     :root {
-      --polimi-blue: rgb(16, 44, 83);
-      --polimi-blue-soft: rgba(16, 44, 83, 0.10);
-      --text: #1c1c1e;
-      --muted: #6e6e73;
-      --card: rgba(255, 255, 255, 0.72);
-      --border: rgba(255, 255, 255, 0.58);
-      --shadow: rgba(16, 44, 83, 0.14);
+      --polimi-blue: rgb(16,44,83);
+      --bg-1: #eef3f8;
+      --bg-2: #f7f8fb;
+      --text: #17181c;
+      --muted: #6e7480;
+      --card: rgba(255,255,255,.72);
+      --stroke: rgba(255,255,255,.72);
+      --shadow: 0 18px 45px rgba(16,44,83,.12);
       --red: #d70015;
       --orange: #ff9500;
+      --green: #248a3d;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
       min-height: 100vh;
-      font-family: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: 'Manrope', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
       color: var(--text);
       background:
-        radial-gradient(circle at top left, rgba(16, 44, 83, 0.18), transparent 34%),
-        linear-gradient(180deg, #f7f9fc 0%, #eef3f9 48%, #f7f7fb 100%);
+        radial-gradient(circle at top left, rgba(16,44,83,.16), transparent 32%),
+        linear-gradient(180deg, var(--bg-1), var(--bg-2));
     }
 
-    .container {
-      width: min(430px, 100%);
+    .app {
+      width: min(100%, 520px);
       margin: 0 auto;
       padding: 28px 16px 34px;
     }
 
-    .header {
-      text-align: center;
-      margin-bottom: 24px;
-      padding: 8px 10px 2px;
+    header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+      margin: 12px 0 26px;
     }
 
     .logo-wrap {
+      width: clamp(245px, 72vw, 332px);
       display: flex;
       justify-content: center;
-      margin-bottom: 18px;
+      align-items: center;
     }
 
     .logo-wrap svg {
-      width: min(72vw, 315px);
+      width: 100%;
       height: auto;
       display: block;
     }
 
     h1 {
       margin: 0;
-      font-size: 36px;
-      line-height: 1.04;
-      width: min(72vw, 315px);
-      margin-left: auto;
-      margin-right: auto;
-      font-weight: 800;
-      letter-spacing: -0.045em;
       color: var(--polimi-blue);
+      font-size: clamp(33px, 8.5vw, 46px);
+      line-height: .96;
+      font-weight: 800;
+      letter-spacing: -0.055em;
+      text-align: center;
     }
 
     .card {
-      position: relative;
-      overflow: hidden;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 28px;
-      padding: 20px;
       margin-bottom: 16px;
-      box-shadow: 0 18px 44px var(--shadow);
-      backdrop-filter: blur(22px) saturate(145%);
-      -webkit-backdrop-filter: blur(22px) saturate(145%);
-    }
-
-    .card::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, rgba(255,255,255,0.46), rgba(255,255,255,0.04));
-      pointer-events: none;
-    }
-
-    .card > * {
-      position: relative;
-      z-index: 1;
-    }
-
-    .collapsible-card {
-      cursor: pointer;
-      padding: 0;
-    }
-
-    .collapsible-card summary {
-      list-style: none;
-      position: relative;
-      z-index: 1;
       padding: 20px;
-      cursor: pointer;
-      user-select: none;
+      border-radius: 28px;
+      background: var(--card);
+      border: 1px solid var(--stroke);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px) saturate(1.4);
+      -webkit-backdrop-filter: blur(18px) saturate(1.4);
+    }
+
+    .section-header,
+    .collapsible-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      min-height: 46px;
-      line-height: 1.25;
-      gap: 16px;
+      gap: 14px;
+      min-height: 28px;
     }
 
-    .collapsible-card summary::-webkit-details-marker {
-      display: none;
-    }
-
-    .collapsible-card summary .section-title {
-      margin-bottom: 0;
-    }
-
-    .collapsible-card summary::after {
-      content: "";
-      width: 9px;
-      height: 9px;
-      border-right: 2px solid var(--polimi-blue);
-      border-bottom: 2px solid var(--polimi-blue);
-      transform: rotate(45deg);
-      transform-origin: center;
-      flex: 0 0 9px;
-      display: block;
-      margin-top: -3px;
-      transition: transform 180ms ease, margin 180ms ease;
-    }
-
-    .collapsible-card[open] summary::after {
-      transform: rotate(225deg);
-      margin-top: 3px;
-    }
-
-    .collapsible-content {
-      position: relative;
-      z-index: 1;
-      padding: 0 20px 20px;
-      animation: reveal 180ms ease;
-    }
-
-    @keyframes reveal {
-      from { opacity: 0; transform: translateY(-4px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+    .collapsible-header { cursor: pointer; user-select: none; }
 
     .section-title {
-      margin-bottom: 16px;
+      margin: 0;
+      color: var(--polimi-blue);
       font-size: 13px;
+      line-height: 1.15;
       font-weight: 600;
-      line-height: 1.2;
-      letter-spacing: 0.12em;
+      letter-spacing: .12em;
       text-transform: uppercase;
-      color: var(--polimi-blue);
     }
 
-    .row {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      align-items: center;
-      gap: 16px;
-      min-height: 54px;
-      padding: 8px 0;
-    }
-
-    .field-label {
-      font-size: 13px;
-      font-weight: 400;
-      color: var(--muted);
-      line-height: 1.25;
-    }
-
-    input[type="time"] {
-      appearance: none;
-      -webkit-appearance: none;
-      min-width: 116px;
-      padding: 10px 12px;
-      border: 1px solid rgba(16, 44, 83, 0.12);
-      border-radius: 16px;
-      background: rgba(255, 255, 255, 0.78);
-      color: var(--polimi-blue);
-      font-family: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      font-size: 19px;
-      font-weight: 500;
-      text-align: center;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.9);
-    }
-
-    input[type="time"]:focus {
-      outline: 2px solid rgba(16, 44, 83, 0.22);
-      outline-offset: 2px;
-    }
-
-    .secondary {
-      margin-top: 10px;
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 300;
-      line-height: 1.35;
-    }
-
-    .warning {
-      margin-top: 10px;
-      font-size: 13px;
-      font-weight: 600;
-      line-height: 1.35;
-    }
-
-    .red { color: var(--red); }
-    .orange { color: var(--orange); }
-
-    .result {
-      text-align: center;
-      padding-top: 24px;
-      padding-bottom: 26px;
-    }
-
-    .result .section-title {
-      margin-bottom: 4px;
-    }
-
-    .time-result {
-      margin: 4px 0 0;
-      color: var(--polimi-blue);
-      font-size: clamp(64px, 17vw, 76px);
-      line-height: 1;
-      font-weight: 800;
-      letter-spacing: -0.06em;
-      font-variant-numeric: tabular-nums;
-      transition: transform 180ms ease, opacity 180ms ease;
-    }
-
-    .time-result.updated {
-      transform: scale(1.025);
-      opacity: 0.86;
-    }
-
-    .status-panel {
-      margin-top: 18px;
-      border-top: 1px solid rgba(16, 44, 83, 0.10);
-      padding-top: 16px;
-      text-align: left;
-    }
-
-    .status-toggle {
-      width: 100%;
-      border: 0;
-      background: rgba(16, 44, 83, 0.06);
-      border-radius: 16px;
-      padding: 13px 14px;
-      color: var(--polimi-blue);
-      font-family: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      font-size: 13px;
-      font-weight: 600;
-      text-align: left;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      transition: background 160ms ease, transform 160ms ease;
-    }
-
-    .status-toggle:active {
-      transform: scale(0.99);
-    }
-
-    .status-toggle.regolare {
-      background: rgba(36, 138, 61, 0.10);
-      color: var(--green);
-      justify-content: center;
-      text-align: center;
-    }
-
-    .status-toggle.anomalie {
-      background: rgba(215, 0, 21, 0.08);
-      color: var(--red);
-    }
-
-    .status-chevron {
-      width: 24px;
-      height: 24px;
+    .chevron-box {
+      width: 28px;
+      height: 28px;
+      flex: 0 0 28px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      position: relative;
-      font-size: 0;
       line-height: 0;
-      transition: transform 180ms ease;
-      flex: 0 0 24px;
     }
 
-    .status-chevron::before {
-      content: "";
-      width: 8px;
-      height: 8px;
-      border-right: 2px solid currentColor;
-      border-bottom: 2px solid currentColor;
-      transform: rotate(45deg);
-      transform-origin: center;
-      margin-top: -4px;
+    .chevron {
+      width: 11px;
+      height: 11px;
+      border-right: 2px solid var(--polimi-blue);
+      border-bottom: 2px solid var(--polimi-blue);
+      transform: translateY(-2px) rotate(45deg);
+      transition: transform .22s ease;
     }
 
-    .status-panel.open .status-chevron {
-      transform: rotate(180deg);
-    }
+    .expanded .chevron { transform: translateY(2px) rotate(225deg); }
 
-    .status-list {
+    .collapsible-content {
       display: none;
-      margin: 12px 0 0;
-      padding: 0;
-      list-style: none;
+      margin-top: 18px;
+    }
+
+    .expanded .collapsible-content { display: block; }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 14px;
+      min-height: 46px;
+      border-top: 1px solid rgba(16,44,83,.08);
+    }
+
+    .field-row:first-child { border-top: 0; }
+
+    .field-label {
       color: var(--muted);
       font-size: 13px;
       font-weight: 400;
-      line-height: 1.55;
+      line-height: 1.2;
     }
 
-    .status-list li {
-      margin: 8px 0;
+    input[type="time"] {
+      min-width: 104px;
+      padding: 8px 10px;
+      border: 1px solid rgba(16,44,83,.14);
+      border-radius: 14px;
+      outline: 0;
+      background: rgba(255,255,255,.78);
+      color: var(--polimi-blue);
+      font: 500 18px/1 'Manrope', sans-serif;
+      text-align: right;
     }
 
-    .status-panel.open .status-list {
-      display: block;
+    .helper {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 400;
+      line-height: 1.35;
     }
 
+    .helper.hidden { display: none; }
 
-    .reset-card {
-      padding: 16px;
+    .presence {
+      margin-top: 12px;
+      color: var(--polimi-blue);
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.35;
+    }
+
+    .presence:empty { display: none; }
+
+    .result-card { text-align: center; }
+
+    .result-time {
+      margin: 14px 0 10px;
+      color: var(--polimi-blue);
+      font-size: clamp(64px, 18vw, 82px);
+      line-height: .9;
+      font-weight: 800;
+      letter-spacing: -0.07em;
+      transition: opacity .16s ease, transform .16s ease;
+    }
+
+    .result-time.updating { opacity: .35; transform: scale(.985); }
+
+    .status {
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(16,44,83,.1);
+    }
+
+    .status-ok {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      color: var(--green);
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.2;
+      text-align: center;
+    }
+
+    .status-alert {
+      display: none;
+    }
+
+    .status-alert.visible { display: block; }
+
+    .status-alert-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 30px;
+      cursor: pointer;
+      user-select: none;
+      color: var(--orange);
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .status-alert-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 30px;
+    }
+
+    .status-alert .chevron { border-color: var(--orange); }
+
+    .anomaly-list {
+      display: none;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(16,44,83,.1);
+      text-align: left;
+    }
+
+    .status-alert.expanded .anomaly-list { display: block; }
+
+    .anomaly-item {
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 400;
+      line-height: 1.45;
+      padding: 7px 0;
     }
 
     .reset-button {
       width: 100%;
       border: 0;
       border-radius: 18px;
-      padding: 16px 18px;
+      padding: 15px 18px;
       background: var(--polimi-blue);
       color: white;
-      font-family: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 0.14em;
+      font: 700 13px/1 'Manrope', sans-serif;
+      letter-spacing: .12em;
       text-transform: uppercase;
       cursor: pointer;
-      box-shadow: 0 12px 28px rgba(16, 44, 83, 0.20);
-      transition: transform 140ms ease, opacity 140ms ease, box-shadow 140ms ease;
+      box-shadow: 0 12px 22px rgba(16,44,83,.18);
+      transition: transform .12s ease, opacity .12s ease;
     }
 
-    .reset-button:active {
-      transform: scale(0.985);
-      opacity: 0.88;
-      box-shadow: 0 8px 20px rgba(16, 44, 83, 0.18);
-    }
-
+    .reset-button:active { transform: scale(.985); opacity: .9; }
 
     .footer-credit {
       display: flex;
@@ -372,27 +282,34 @@
       align-items: flex-end;
       margin-top: 14px;
       padding-right: 4px;
-      padding-bottom: 18px;
-      font-size: 11px;
-      font-weight: 300;
-      line-height: 1.25;
       color: var(--polimi-blue);
-      opacity: 0.75;
+      font-size: 11px;
+      line-height: 1.25;
+      font-weight: 300;
+      opacity: .75;
       user-select: none;
     }
 
-    @media (max-width: 360px) {
-      h1 { font-size: 32px; }
-      .card { padding: 18px; border-radius: 24px; }
-      .row { gap: 10px; }
-      input[type="time"] { min-width: 108px; font-size: 18px; }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-1: #101722;
+        --bg-2: #0d1118;
+        --text: #f4f5f7;
+        --muted: #aab0ba;
+        --card: rgba(28,34,45,.70);
+        --stroke: rgba(255,255,255,.10);
+        --shadow: 0 18px 45px rgba(0,0,0,.32);
+      }
+      input[type="time"] { background: rgba(255,255,255,.08); color: #f4f7fb; }
+      .section-title, h1, .result-time, .presence, .footer-credit { color: #dce8f8; }
+      .chevron { border-color: #dce8f8; }
+      .logo-wrap svg .st0 { fill: #ffffff !important; }
     }
   </style>
 </head>
-
 <body>
-  <main class="container">
-    <header class="header">
+  <main class="app">
+    <header>
       <div class="logo-wrap" aria-label="Logo Politecnico di Milano">
         <svg id="Livello_1" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 127.56 41.2">
   <!-- Generator: Adobe Illustrator 30.6.0, SVG Export Plug-In . SVG Version: 2.1.4 Build 109)  -->
@@ -575,327 +492,389 @@
       <h1>Calcolo Orario</h1>
     </header>
 
-    <details class="card collapsible-card">
-      <summary>
-        <div class="section-title">fascia oraria</div>
-      </summary>
+    <section class="card expanded" id="fasciaCard">
+      <div class="collapsible-header" data-toggle="fasciaCard">
+        <h2 class="section-title">Fascia oraria</h2>
+        <span class="chevron-box" aria-hidden="true"><span class="chevron"></span></span>
+      </div>
       <div class="collapsible-content">
-        <div class="row">
-          <span class="field-label">Inizio</span>
+        <div class="field-row">
+          <label class="field-label" for="inizioFascia">Inizio</label>
           <input id="inizioFascia" type="time" value="08:30">
         </div>
-        <div class="row">
-          <span class="field-label">Fine</span>
+        <div class="field-row">
+          <label class="field-label" for="fineFascia">Fine</label>
           <input id="fineFascia" type="time" value="09:30">
         </div>
       </div>
-    </details>
+    </section>
 
     <section class="card">
-      <div class="section-title">entrata</div>
-      <div class="row">
-        <span class="field-label">Ingresso</span>
+      <div class="section-header">
+        <h2 class="section-title">Entrata</h2>
+      </div>
+      <div class="field-row" style="margin-top:18px;">
+        <label class="field-label" for="oraEntrata">Ingresso</label>
         <input id="oraEntrata" type="time" value="08:30">
       </div>
-      <div id="avvisoEntrata"></div>
     </section>
 
     <section class="card">
-      <div class="section-title">pausa pranzo</div>
-      <div class="row">
-        <span class="field-label">Inizio</span>
-        <input id="uscitaPausa" type="time" value="12:00" min="12:00">
+      <div class="section-header">
+        <h2 class="section-title">Pausa pranzo</h2>
       </div>
-      <div class="row">
-        <span class="field-label">Fine</span>
-        <input id="rientroPausa" type="time" value="12:30">
+      <div style="margin-top:18px;">
+        <div class="field-row">
+          <label class="field-label" for="inizioPausa">Inizio</label>
+          <input id="inizioPausa" type="time" value="12:00">
+        </div>
+        <div class="field-row">
+          <label class="field-label" for="finePausa">Fine</label>
+          <input id="finePausa" type="time" value="12:30">
+        </div>
       </div>
-      <div id="pausaCalcolata" class="secondary"></div>
-      <div id="avvisoPausa"></div>
+      <div id="durataPausaLabel" class="helper hidden"></div>
     </section>
 
-    <details class="card collapsible-card">
-      <summary>
-        <div class="section-title">uscita effettiva</div>
-      </summary>
+    <section class="card" id="uscitaEffettivaCard">
+      <div class="collapsible-header" data-toggle="uscitaEffettivaCard">
+        <h2 class="section-title">Uscita effettiva</h2>
+        <span class="chevron-box" aria-hidden="true"><span class="chevron"></span></span>
+      </div>
       <div class="collapsible-content">
-        <div class="row">
-          <span class="field-label">Uscita</span>
+        <div class="field-row">
+          <label class="field-label" for="uscitaEffettiva">Uscita</label>
           <input id="uscitaEffettiva" type="time" value="16:12">
         </div>
-        <div id="presenzaEffettiva" class="secondary"></div>
+        <div id="maggiorPresenza" class="presence"></div>
       </div>
-    </details>
+    </section>
 
-    <section class="card result">
-      <div class="section-title">orario di uscita</div>
-      <div id="oraUscita" class="time-result">16:12</div>
+    <section class="card result-card">
+      <h2 class="section-title">Orario di uscita</h2>
+      <div id="orarioUscita" class="result-time">16:12</div>
 
-      <div id="statusPanel" class="status-panel">
-        <div class="status-toggle regolare">
-          <span>✓ Giornata regolare</span>
+      <div class="status">
+        <div id="statusOk" class="status-ok">✓ Giornata regolare</div>
+
+        <div id="statusAlert" class="status-alert">
+          <div class="status-alert-header" data-toggle="statusAlert">
+            <span id="statusAlertTitle" class="status-alert-title">⚠ 1 anomalia rilevata</span>
+            <span class="chevron-box" aria-hidden="true"><span class="chevron"></span></span>
+          </div>
+          <div id="anomalyList" class="anomaly-list"></div>
         </div>
       </div>
     </section>
 
-    <section class="card reset-card">
+    <section class="card">
       <button id="resetButton" class="reset-button" type="button">Reset</button>
     </section>
 
-    <div class="footer-credit" aria-label="Powered by Alessandro Mandelli">
+    <div class="footer-credit">
       <span>Powered by</span>
       <span>Alessandro Mandelli</span>
     </div>
   </main>
 
   <script>
+    const DEFAULTS = {
+      inizioFascia: '08:30',
+      fineFascia: '09:30',
+      oraEntrata: '08:30',
+      inizioPausa: '12:00',
+      finePausa: '12:30',
+      uscitaEffettiva: '16:12',
+      fasciaAperta: true,
+      uscitaEffettivaAperta: false,
+      anomalieAperte: false,
+      durataPausaVisibile: false
+    };
+
     const MINUTI_LAVORO = 7 * 60 + 12;
-    const MIN_PAUSA = 30;
-    const MAX_PAUSA = 120;
+    const PAUSA_MINIMA = 30;
+    const PAUSA_MASSIMA = 120;
     const ORA_MINIMA_PAUSA = 12 * 60;
     const ORA_MASSIMA_RIENTRO = 15 * 60;
+    const STORAGE_KEY = 'calcolo-orario-v7';
 
-    const ids = [
-      "oraEntrata",
-      "inizioFascia",
-      "fineFascia",
-      "uscitaPausa",
-      "rientroPausa",
-      "uscitaEffettiva"
-    ];
+    const $ = (id) => document.getElementById(id);
 
-    ids.forEach(id => document.getElementById(id).addEventListener("input", calcola));
+    const el = {
+      inizioFascia: $('inizioFascia'),
+      fineFascia: $('fineFascia'),
+      oraEntrata: $('oraEntrata'),
+      inizioPausa: $('inizioPausa'),
+      finePausa: $('finePausa'),
+      uscitaEffettiva: $('uscitaEffettiva'),
+      durataPausaLabel: $('durataPausaLabel'),
+      maggiorPresenza: $('maggiorPresenza'),
+      orarioUscita: $('orarioUscita'),
+      statusOk: $('statusOk'),
+      statusAlert: $('statusAlert'),
+      statusAlertTitle: $('statusAlertTitle'),
+      anomalyList: $('anomalyList'),
+      fasciaCard: $('fasciaCard'),
+      uscitaEffettivaCard: $('uscitaEffettivaCard'),
+      resetButton: $('resetButton')
+    };
 
-    let finePausaSelezionata = false;
-
-    ["focus", "click", "touchstart", "input"].forEach(eventName => {
-      rientroPausa.addEventListener(eventName, () => {
-        finePausaSelezionata = true;
-        calcola();
-      }, { passive: true });
-    });
+    let state = loadState();
+    let isUpdating = false;
 
     function minutiDaOra(ora) {
-      const [h, m] = ora.split(":").map(Number);
+      const [h, m] = ora.split(':').map(Number);
       return h * 60 + m;
     }
 
     function oraDaMinuti(minuti) {
-      minuti = ((minuti % 1440) + 1440) % 1440;
-      const h = Math.floor(minuti / 60);
-      const m = minuti % 60;
-      return String(h).padStart(2, "0") + ":" + String(m).padStart(2, "0");
+      const normalized = ((minuti % 1440) + 1440) % 1440;
+      const h = Math.floor(normalized / 60);
+      const m = normalized % 60;
+      return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
     }
 
-    function mostraAvviso(contenitore, testo, classe) {
-      contenitore.innerHTML += `<div class="warning ${classe}">${testo}</div>`;
+    function formattaDurata(minuti) {
+      const valore = Math.max(0, Math.round(minuti));
+      if (valore < 60) return valore + ' ' + (valore === 1 ? 'minuto' : 'minuti');
+      const ore = Math.floor(valore / 60);
+      const restanti = valore % 60;
+      const parteOre = ore + ' ' + (ore === 1 ? 'ora' : 'ore');
+      if (restanti === 0) return parteOre;
+      return parteOre + ' e ' + restanti + ' ' + (restanti === 1 ? 'minuto' : 'minuti');
     }
 
-    function formattaDurata(minutiTotali) {
-      const minuti = Math.max(0, Math.round(minutiTotali));
+    function loadState() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        return { ...DEFAULTS, ...(saved || {}) };
+      } catch {
+        return { ...DEFAULTS };
+      }
+    }
 
-      if (minuti > 60) {
-        const ore = Math.floor(minuti / 60);
-        const resto = minuti % 60;
-        const testoOre = ore === 1 ? "1 ora" : ore + " ore";
+    function saveState() {
+      const payload = {
+        inizioFascia: el.inizioFascia.value,
+        fineFascia: el.fineFascia.value,
+        oraEntrata: el.oraEntrata.value,
+        inizioPausa: el.inizioPausa.value,
+        finePausa: el.finePausa.value,
+        uscitaEffettiva: el.uscitaEffettiva.value,
+        fasciaAperta: el.fasciaCard.classList.contains('expanded'),
+        uscitaEffettivaAperta: el.uscitaEffettivaCard.classList.contains('expanded'),
+        anomalieAperte: el.statusAlert.classList.contains('expanded'),
+        durataPausaVisibile: state.durataPausaVisibile
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    }
 
-        if (resto === 0) {
-          return testoOre;
-        }
+    function applyState() {
+      el.inizioFascia.value = state.inizioFascia;
+      el.fineFascia.value = state.fineFascia;
+      el.oraEntrata.value = state.oraEntrata;
+      el.inizioPausa.value = state.inizioPausa;
+      el.finePausa.value = state.finePausa;
+      el.uscitaEffettiva.value = state.uscitaEffettiva;
+      el.fasciaCard.classList.toggle('expanded', state.fasciaAperta);
+      el.uscitaEffettivaCard.classList.toggle('expanded', state.uscitaEffettivaAperta);
+      el.statusAlert.classList.toggle('expanded', state.anomalieAperte);
+    }
 
-        const testoMinuti = resto === 1 ? "1 minuto" : resto + " minuti";
-        return testoOre + " e " + testoMinuti;
+    function clampVincoli() {
+      let inizioFascia = minutiDaOra(el.inizioFascia.value);
+      let fineFascia = minutiDaOra(el.fineFascia.value);
+      let ingresso = minutiDaOra(el.oraEntrata.value);
+      let inizioPausa = minutiDaOra(el.inizioPausa.value);
+      let finePausa = minutiDaOra(el.finePausa.value);
+      let uscitaEff = minutiDaOra(el.uscitaEffettiva.value);
+
+      if (fineFascia < inizioFascia) {
+        fineFascia = inizioFascia;
+        el.fineFascia.value = oraDaMinuti(fineFascia);
       }
 
-      return minuti === 1 ? "1 minuto" : minuti + " minuti";
-    }
+      const minimoInizioPausa = Math.max(ORA_MINIMA_PAUSA, ingresso);
+      if (inizioPausa < minimoInizioPausa) {
+        inizioPausa = minimoInizioPausa;
+        el.inizioPausa.value = oraDaMinuti(inizioPausa);
+      }
 
-    function animaRisultato() {
-      oraUscita.classList.remove("updated");
-      void oraUscita.offsetWidth;
-      oraUscita.classList.add("updated");
-      window.setTimeout(() => oraUscita.classList.remove("updated"), 180);
+      if (finePausa < inizioPausa) {
+        finePausa = inizioPausa;
+        el.finePausa.value = oraDaMinuti(finePausa);
+      }
+
+      if (uscitaEff < finePausa) {
+        uscitaEff = finePausa;
+        el.uscitaEffettiva.value = oraDaMinuti(uscitaEff);
+      }
     }
 
     function calcola() {
-      const entrata = minutiDaOra(oraEntrata.value);
-      const inizio = minutiDaOra(inizioFascia.value);
-      let fine = minutiDaOra(fineFascia.value);
+      if (isUpdating) return;
+      isUpdating = true;
 
-      fineFascia.min = oraDaMinuti(inizio);
-      if (fine < inizio) {
-        fineFascia.value = oraDaMinuti(inizio);
-        fine = inizio;
-      }
+      clampVincoli();
 
-      let inizioPausa = minutiDaOra(uscitaPausa.value);
-      let finePausa = minutiDaOra(rientroPausa.value);
+      const inizioFascia = minutiDaOra(el.inizioFascia.value);
+      const fineFascia = minutiDaOra(el.fineFascia.value);
+      const ingresso = minutiDaOra(el.oraEntrata.value);
+      const inizioPausa = minutiDaOra(el.inizioPausa.value);
+      const finePausa = minutiDaOra(el.finePausa.value);
+      const uscitaEffettiva = minutiDaOra(el.uscitaEffettiva.value);
 
-      const inizioMinimoConsentitoPausa = Math.max(ORA_MINIMA_PAUSA, entrata);
-      uscitaPausa.min = oraDaMinuti(inizioMinimoConsentitoPausa);
+      const ingressoEffettivo = ingresso < inizioFascia ? inizioFascia : ingresso;
+      const durataPausaReale = finePausa - inizioPausa;
+      const durataPausa = Math.max(durataPausaReale, PAUSA_MINIMA);
+      const uscitaPrevista = ingressoEffettivo + MINUTI_LAVORO + durataPausa;
 
-      if (inizioPausa < inizioMinimoConsentitoPausa) {
-        uscitaPausa.value = oraDaMinuti(inizioMinimoConsentitoPausa);
-        inizioPausa = inizioMinimoConsentitoPausa;
-      }
+      aggiornaOrarioUscita(oraDaMinuti(uscitaPrevista));
+      aggiornaPausa(durataPausaReale, durataPausa);
+      aggiornaMaggiorPresenza(uscitaEffettiva, ingressoEffettivo, durataPausa);
+      aggiornaAnomalie({ ingresso, inizioFascia, fineFascia, finePausa, durataPausaReale, durataPausa, uscitaEffettiva, ingressoEffettivo });
 
-      rientroPausa.min = oraDaMinuti(inizioPausa);
-
-      if (finePausa < inizioPausa) {
-        rientroPausa.value = oraDaMinuti(inizioPausa);
-        finePausa = inizioPausa;
-      }
-
-      const entrataEffettiva = entrata < inizio ? inizio : entrata;
-      const entrataInRitardo = entrata > fine;
-      const minutiRitardo = entrata - fine;
-
-      const durataRealePausa = finePausa - inizioPausa;
-      const durataPausa = durataRealePausa < MIN_PAUSA ? MIN_PAUSA : durataRealePausa;
-
-      const pausaTroppoLunga = durataPausa > MAX_PAUSA;
-      const rientroInRitardo = finePausa > ORA_MASSIMA_RIENTRO;
-
-      const uscita = entrataEffettiva + MINUTI_LAVORO + durataPausa;
-      const nuovoOrario = oraDaMinuti(uscita);
-
-      if (oraUscita.textContent !== nuovoOrario) {
-        oraUscita.textContent = nuovoOrario;
-        animaRisultato();
-      } else {
-        oraUscita.textContent = nuovoOrario;
-      }
-
-      let uscitaEff = minutiDaOra(uscitaEffettiva.value);
-      uscitaEffettiva.min = oraDaMinuti(finePausa);
-
-      if (uscitaEff < finePausa) {
-        uscitaEffettiva.value = oraDaMinuti(finePausa);
-        uscitaEff = finePausa;
-      }
-
-      const minutiLavorati = Math.max(0, uscitaEff - entrataEffettiva - durataPausa);
-      const differenzaPresenza = minutiLavorati - MINUTI_LAVORO;
-
-      if (differenzaPresenza >= 1) {
-        presenzaEffettiva.textContent = "Maggior presenza: " + formattaDurata(differenzaPresenza);
-      } else {
-        presenzaEffettiva.textContent = "";
-      }
-
-      avvisoEntrata.innerHTML = "";
-      avvisoPausa.innerHTML = "";
-
-      const anomalie = [];
-
-      if (entrataInRitardo) {
-        const testo = "Ritardo di " + formattaDurata(minutiRitardo);
-        anomalie.push(testo);
-      }
-
-      if (entrata < inizio) {
-        const testo = "Ingresso anticipato. Calcolo avviato dalle " + oraDaMinuti(inizio);
-        anomalie.push(testo);
-      }
-
-      if (finePausaSelezionata) {
-        if (durataRealePausa < MIN_PAUSA) {
-          pausaCalcolata.textContent = "Pausa calcolata: 30 minuti";
-        } else {
-          pausaCalcolata.textContent = "Durata pausa: " + formattaDurata(durataPausa);
-        }
-      } else {
-        pausaCalcolata.textContent = "";
-      }
-
-      if (durataRealePausa < MIN_PAUSA) {
-        const testo = "Pausa inferiore a 30 minuti. Viene conteggiata mezz'ora";
-        anomalie.push(testo);
-      }
-
-      if (pausaTroppoLunga) {
-        const testo = "Pausa superiore a 2 ore";
-        anomalie.push(testo);
-      }
-
-      if (rientroInRitardo) {
-        const testo = "Rientro pausa oltre le 15:00";
-        anomalie.push(testo);
-      }
-
-      if (differenzaPresenza < 0) {
-        const testo = "Giornata non completa. Ore lavorate: " + formattaDurata(minutiLavorati);
-        anomalie.push(testo);
-      }
-
-      aggiornaStatoAnomalie(anomalie);
+      saveState();
+      isUpdating = false;
     }
 
+    function aggiornaOrarioUscita(value) {
+      if (el.orarioUscita.textContent !== value) {
+        el.orarioUscita.classList.add('updating');
+        window.setTimeout(() => {
+          el.orarioUscita.textContent = value;
+          el.orarioUscita.classList.remove('updating');
+        }, 80);
+      }
+    }
 
-    function aggiornaStatoAnomalie(anomalie) {
-      const statusPanel = document.getElementById("statusPanel");
-      statusPanel.classList.remove("open");
-
-      if (anomalie.length === 0) {
-        statusPanel.innerHTML = `
-          <div class="status-toggle regolare">
-            <span>✓ Giornata regolare</span>
-          </div>
-        `;
+    function aggiornaPausa(durataReale, durataCalcolata) {
+      if (!state.durataPausaVisibile) {
+        el.durataPausaLabel.classList.add('hidden');
+        el.durataPausaLabel.textContent = '';
         return;
       }
 
-      const testoStato = anomalie.length === 1
-        ? "⚠ 1 anomalia rilevata"
-        : "⚠ " + anomalie.length + " anomalie rilevate";
-
-      const lista = anomalie
-        .map(testo => `<li>${testo}</li>`)
-        .join("");
-
-      statusPanel.innerHTML = `
-        <button id="statusToggle" class="status-toggle anomalie" type="button" aria-expanded="false">
-          <span>${testoStato}</span>
-          <span class="status-chevron">⌄</span>
-        </button>
-        <ul id="statusList" class="status-list">${lista}</ul>
-      `;
+      el.durataPausaLabel.classList.remove('hidden');
+      if (durataReale < PAUSA_MINIMA) {
+        el.durataPausaLabel.textContent = 'Pausa calcolata: 30 minuti';
+      } else {
+        el.durataPausaLabel.textContent = 'Durata pausa: ' + formattaDurata(durataCalcolata);
+      }
     }
 
-    const valoriIniziali = {
-      oraEntrata: "08:30",
-      inizioFascia: "08:30",
-      fineFascia: "09:30",
-      uscitaPausa: "12:00",
-      rientroPausa: "12:30",
-      uscitaEffettiva: "16:12"
-    };
+    function aggiornaMaggiorPresenza(uscitaEffettiva, ingressoEffettivo, durataPausa) {
+      const lavorato = uscitaEffettiva - ingressoEffettivo - durataPausa;
+      const extra = lavorato - MINUTI_LAVORO;
+      el.maggiorPresenza.textContent = extra >= 1 ? 'Maggior presenza ' + formattaDurata(extra) : '';
+    }
 
-    document.getElementById("statusPanel").addEventListener("click", event => {
-      const toggle = event.target.closest("#statusToggle");
-      if (!toggle) return;
+    function aggiornaAnomalie(dati) {
+      const anomalie = [];
 
-      const panel = document.getElementById("statusPanel");
-      const aperto = panel.classList.toggle("open");
-      toggle.setAttribute("aria-expanded", aperto ? "true" : "false");
-    });
-
-    resetButton.addEventListener("click", () => {
-      Object.entries(valoriIniziali).forEach(([id, valore]) => {
-        document.getElementById(id).value = valore;
-      });
-
-      const fasciaCard = document.querySelector(".collapsible-card");
-      if (fasciaCard) {
-        fasciaCard.removeAttribute("open");
+      if (dati.ingresso < dati.inizioFascia) {
+        anomalie.push('Ingresso anticipato. Calcolo avviato dalle ' + oraDaMinuti(dati.inizioFascia));
       }
 
-      finePausaSelezionata = false;
+      if (dati.ingresso > dati.fineFascia) {
+        anomalie.push('Ritardo di ' + formattaDurata(dati.ingresso - dati.fineFascia));
+      }
 
+      if (dati.durataPausaReale < PAUSA_MINIMA) {
+        anomalie.push("Pausa inferiore a 30 minuti. Viene conteggiata mezz'ora");
+      }
+
+      if (dati.durataPausa > PAUSA_MASSIMA) {
+        anomalie.push('Pausa superiore a 2 ore');
+      }
+
+      if (dati.finePausa > ORA_MASSIMA_RIENTRO) {
+        anomalie.push('Rientro pausa oltre le 15:00');
+      }
+
+      const lavorato = dati.uscitaEffettiva - dati.ingressoEffettivo - dati.durataPausa;
+      if (lavorato < MINUTI_LAVORO) {
+        anomalie.push('Giornata non completa. Ore lavorate: ' + formattaDurata(lavorato));
+      }
+
+      renderAnomalie(anomalie);
+    }
+
+    function renderAnomalie(anomalie) {
+      if (anomalie.length === 0) {
+        el.statusOk.style.display = 'flex';
+        el.statusAlert.classList.remove('visible', 'expanded');
+        el.anomalyList.innerHTML = '';
+        return;
+      }
+
+      el.statusOk.style.display = 'none';
+      el.statusAlert.classList.add('visible');
+      el.statusAlertTitle.textContent = '⚠ ' + anomalie.length + ' ' + (anomalie.length === 1 ? 'anomalia rilevata' : 'anomalie rilevate');
+      el.anomalyList.innerHTML = anomalie.map(item => `<div class="anomaly-item">${item}</div>`).join('');
+    }
+
+    function riallineaUscitaEffettiva() {
+      clampVincoli();
+
+      const inizioFascia = minutiDaOra(el.inizioFascia.value);
+      const ingresso = minutiDaOra(el.oraEntrata.value);
+      const inizioPausa = minutiDaOra(el.inizioPausa.value);
+      const finePausa = minutiDaOra(el.finePausa.value);
+
+      const ingressoEffettivo = ingresso < inizioFascia ? inizioFascia : ingresso;
+      const durataPausaReale = finePausa - inizioPausa;
+      const durataPausa = Math.max(durataPausaReale, PAUSA_MINIMA);
+      const uscitaPrevista = ingressoEffettivo + MINUTI_LAVORO + durataPausa;
+
+      el.uscitaEffettiva.value = oraDaMinuti(uscitaPrevista);
+    }
+
+    function reset() {
+      localStorage.removeItem(STORAGE_KEY);
+      state = { ...DEFAULTS };
+      applyState();
       calcola();
-      animaRisultato();
+    }
+
+    document.querySelectorAll('[data-toggle]').forEach((trigger) => {
+      trigger.addEventListener('click', () => {
+        const target = $(trigger.dataset.toggle);
+        if (!target.classList.contains('visible') && target.id === 'statusAlert') return;
+        target.classList.toggle('expanded');
+        saveState();
+      });
     });
 
+    el.inizioFascia.addEventListener('input', () => {
+      const inizio = minutiDaOra(el.inizioFascia.value);
+      el.fineFascia.value = oraDaMinuti(inizio + 60);
+      el.oraEntrata.value = el.inizioFascia.value;
+      riallineaUscitaEffettiva();
+      calcola();
+    });
+
+    el.fineFascia.addEventListener('input', calcola);
+    el.oraEntrata.addEventListener('input', calcola);
+    el.inizioPausa.addEventListener('input', calcola);
+
+    el.finePausa.addEventListener('focus', () => {
+      state.durataPausaVisibile = true;
+      calcola();
+    });
+    el.finePausa.addEventListener('click', () => {
+      state.durataPausaVisibile = true;
+      calcola();
+    });
+    el.finePausa.addEventListener('input', () => {
+      state.durataPausaVisibile = true;
+      calcola();
+    });
+
+    el.uscitaEffettiva.addEventListener('input', calcola);
+    el.resetButton.addEventListener('click', reset);
+
+    applyState();
     calcola();
   </script>
 </body>
