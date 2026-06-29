@@ -650,7 +650,7 @@
   </g>
 </svg>
       </div>
-      <h1>Calcolo Orario</h1>
+      <h1>Calcolo timbratura</h1>
     </header>
 
     <details class="card collapsible-card">
@@ -720,8 +720,8 @@
       <button id="resetButton" class="reset-button" type="button">Reset</button>
     </section>
 
-    <div class="footer-credit" aria-label="Powered by Alessandro Mandelli">
-      <span>Powered by</span>
+    <div class="footer-credit" aria-label="Designed by Alessandro Mandelli">
+      <span>Designed by</span>
       <span>Alessandro Mandelli</span>
     </div>
   </main>
@@ -928,37 +928,37 @@
       }
 
       if (entrata < inizio) {
-        const testo = "Ingresso anticipato. Calcolo avviato dalle " + oraDaMinuti(inizio);
+        const testo = "Ingresso anticipato. Calcolo avviato dalle " + oraDaMinuti(inizio)".";
         anomalie.push(testo);
       }
 
       if (finePausaSelezionata) {
         if (durataRealePausa < MIN_PAUSA) {
-          pausaCalcolata.textContent = "Pausa calcolata: 30 minuti";
+          pausaCalcolata.textContent = "Pausa calcolata: 30 minuti.";
         } else {
-          pausaCalcolata.textContent = "Durata pausa: " + formattaDurata(durataPausa);
+          pausaCalcolata.textContent = "Durata pausa: " + formattaDurata(durataPausa)".";
         }
       } else {
         pausaCalcolata.textContent = "";
       }
 
       if (durataRealePausa < MIN_PAUSA) {
-        const testo = "Pausa inferiore a 30 minuti. Viene conteggiata mezz'ora";
+        const testo = "Pausa inferiore a 30 minuti. Viene conteggiata mezz'ora.";
         anomalie.push(testo);
       }
 
       if (pausaTroppoLunga) {
-        const testo = "Pausa superiore a 2 ore";
+        const testo = "Pausa superiore a 2 ore.";
         anomalie.push(testo);
       }
 
       if (rientroInRitardo) {
-        const testo = "Rientro pausa oltre le 15:00";
+        const testo = "Rientro pausa oltre le 15:00.";
         anomalie.push(testo);
       }
 
       if (differenzaPresenza < 0) {
-        const testo = "Giornata non completa. Ore lavorate: " + formattaDurata(minutiLavorati);
+        const testo = "Giornata non completa. Ore lavorate: " + formattaDurata(minutiLavorati)".";
         anomalie.push(testo);
       }
 
