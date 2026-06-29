@@ -969,9 +969,10 @@
 
     function aggiornaStatoAnomalie(anomalie) {
       const statusPanel = document.getElementById("statusPanel");
-      statusPanel.classList.remove("open");
+      const pannelloEraAperto = statusPanel.classList.contains("open");
 
       if (anomalie.length === 0) {
+        statusPanel.classList.remove("open");
         statusPanel.innerHTML = `
           <div class="status-toggle regolare">
             <span>✓ Giornata regolare</span>
@@ -989,12 +990,18 @@
         .join("");
 
       statusPanel.innerHTML = `
-        <button id="statusToggle" class="status-toggle anomalie" type="button" aria-expanded="false">
+        <button id="statusToggle" class="status-toggle anomalie" type="button" aria-expanded="${pannelloEraAperto ? "true" : "false"}">
           <span>${testoStato}</span>
           <span class="status-chevron">⌄</span>
         </button>
         <ul id="statusList" class="status-list">${lista}</ul>
       `;
+
+      if (pannelloEraAperto) {
+        statusPanel.classList.add("open");
+      } else {
+        statusPanel.classList.remove("open");
+      }
     }
 
     const valoriIniziali = {
@@ -1085,6 +1092,11 @@
 
       finePausaSelezionata = false;
       ultimoInizioPausa = minutiDaOra(uscitaPausa.value);
+
+      const statusPanel = document.getElementById("statusPanel");
+      if (statusPanel) {
+        statusPanel.classList.remove("open");
+      }
 
       const uscitaEffettivaCard = document.getElementById("uscitaEffettivaCard");
       if (uscitaEffettivaCard) {
